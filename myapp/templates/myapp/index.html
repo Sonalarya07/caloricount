@@ -4,17 +4,44 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
-    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
     <div class="container">
         <div class="row">
             <div class="col-md-12">
+                <nav class="navbar navbar-dark bg-primary">
+                    <span class="navbar-brand"> Calorie Tracker</span>
+
+                </nav>
+
+            </div>
+
+        </div>
+        <br><br><br>
+
+        <h4>Calorie Goal</h4>
+        <br>
+        <div class="row">
+            <div class="col-md-9 offset-1">
+                    <div class="progress">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="0">
+                        </div>
+                    </div>                  
+                
+            </div>
+        </div>
+        <br><br><br>
+
+
+        <div class="row">
+            <div class="col-md-12">
                 <form method="POSt" >
+                    {% csrf_token %}
                     <div class="form-group row">
 
-                        {% csrf_token %}
+                        
                         <label class="col-md-2">
                             <b>select food to add</b>
                             </label>
@@ -42,6 +69,7 @@
                         <th> protein(gm)</th>
                         <th> fats(gm)</th>
                         <th> Calories(kcal)</th>
+                        <th>Remove Item</th>
                     </tr>
 
                             {% for c in consumed_food %}
@@ -51,6 +79,7 @@
                                 <td>{{c.food_consumed.protein}}</td>
                                 <td> {{c.food_consumed.fat}}</td>
                                 <td>{{c.food_consumed.calories}}</td>
+                                <td><a class="btn btn-danger" href="{% url 'delete_consume' c.id %}">Remove</a></td>
                             </tr>
                             {% endfor %}
 
@@ -65,7 +94,18 @@
                             </tr>
                 </table>
             </div>
+            <div class="col-md-5 offset-1">
+                <div class="">
+                    <h4>Today's breakdown</h4>
+                </div>
+                <div class="card-header text-white bg-primary">
+                    <h4>Macro Nutrients breakdown</h4>
+                </div>
+                <div class="col-md-12">
 
+                <canvas id="myDoughnutChart" width="400" height="400"></canvas>
+                </div>
+            </div>
         </div>
 
     </div> 
@@ -78,21 +118,63 @@
     for(var i=1;i<table.rows.length-1;i++){
         console.log(table.rows[i].cells[1].innerHTML);
         carbs += parseFloat( table.rows[i].cells[1].innerHTML);
-        carbs = Math.round(carbs);
         protein += parseFloat( table.rows[i].cells[2].innerHTML);
-        protein = Math.round(protein);
         fat += parseFloat( table.rows[i].cells[3].innerHTML);
-        fat = Math.round(fat);
         calories += parseFloat( table.rows[i].cells[4].innerHTML);
-        calories = Math.round(calories);
 
     }
     console.log(calories);
+
+    carbs = Math.round(carbs);
+    protein = Math.round(protein);
+    fat = Math.round(fat);
+    calories = Math.round(calories);
 
     document.getElementById("totalCarbs").innerHTML = carbs;
     document.getElementById("totalProtein").innerHTML = protein;
     document.getElementById("totalFat").innerHTML = fat;
     document.getElementById("totalCalories").innerHTML = calories;
+
+    var calper = (calories/2000)*100;
+    document.getElementsByClassName("progress-bar")[0].setAttribute("style", "width:" + calper + "%")
+
+    
+    var ctx = document.getElementById('myDoughnutChart').getContext('2d');
+
+    var doughnutChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Carbs', 'Protein', 'Fat'],
+            datasets: [{
+                data: [carbs, protein, fat],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.8)', // Carbs color
+                    'rgba(75, 192, 192, 0.8)', // Protein color
+                    'rgba(255, 205, 86, 0.8)'  // Fat color
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(255, 205, 86, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            title: {
+                display: true,
+                text: 'Macronutrient Breakdown',
+                fontSize: 16
+            },
+            legend: {
+                display: true,
+                position: 'right'
+            }
+        }
+    });
+
 
 </script>
 </html>
